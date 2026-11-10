@@ -1,4 +1,4 @@
-<title>Bugün Sana Ne Diyor</title>
+<!doctype html><html lang="tr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><meta name="apple-mobile-web-app-title" content="Kart"></head><body><title>Bugün Sana Ne Diyor</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Anton&family=Inter:ital,wght@0,400;0,600;0,800;0,900;1,600&display=swap">
 <style>
@@ -661,7 +661,7 @@ function botBegen(){if($("crowd").checked){begen(Math.random()<.4?rnd(BOTS):"",3
 [["zeyno_",6,1],["burak_4268",4,2],["ayse.k",3,1],["HaciBerat",2,0]].forEach(([a,n,lv])=>{const u=user(a);u.acilan=n;u.coin=n*R[lv].coin;});
 toplam=1240;board();kilit();fBos();olcer();ebYaz();
 ["ayse.k","caglaa","sinan.34","Nurella"].forEach((a,i)=>chat(a,YORUM[i]));
-setTimeout(()=>gonder("ayse.k",1),900);setTimeout(bot,5000);setTimeout(botBegen,1500);
+setTimeout(()=>{if(MOD==="demo")gonder("ayse.k",1)},900);setTimeout(bot,5000);setTimeout(botBegen,1500);
 
 /* ================= CANLI MOD: telefon = ekran, bilgisayar = kumanda + TikFinity ================= */
 let MOD="demo",room=null,ws=null,wsOk=false,odaOk=false,ekranVar=0,db=null,dbOk=false,odaDurum="…",dbDurum="…";const gor=new Set(),son=[];let yaziyor=false,bekleyen=false;
@@ -734,3 +734,4 @@ try{const m=localStorage.getItem("kmod");if(m==="ekran"||m==="kumanda")setTimeou
 lstYaz();
 $("oku").onchange=()=>{if(!$("oku").checked)try{speechSynthesis.cancel()}catch(e){}};
 </script>
+</body></html>
