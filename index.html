@@ -222,6 +222,10 @@ body.hafif .glass{backdrop-filter:none;background:rgba(40,8,14,.72)}
 body.hafif .grain{display:none}
 body.hafif .cardWrap::after{filter:none;opacity:.55}
 body.hafif .sheen{display:none}
+body.hafif .cardWrap::before{animation:none}
+body.hafif .card.locked{animation:none}
+body.hafif .rays{animation:none}
+body.hafif .blur{filter:none;opacity:.35}
 </style>
 
 <div class="phone tall" id="phone">
@@ -524,14 +528,16 @@ const P=[];let t0=performance.now();
 function para(n){for(let i=0;i<n;i++)P.push({x:Math.random()*1080,y:-60-Math.random()*900,vx:(Math.random()-.5)*2,vy:5+Math.random()*6,g:.05,r:0,c:Math.random()<.7?"#3fbf6a":"#ffcf3a",l:1,d:.008,t:"para",a:Math.random()*6.28,va:(Math.random()-.5)*.2})}
 function fx(n,renk,tip){for(let i=0;i<n;i++){const a=Math.random()*6.28,v=tip==="altin"?4+Math.random()*14:2+Math.random()*6;
   P.push({x:540,y:764,vx:Math.cos(a)*v,vy:Math.sin(a)*v-(tip==="altin"?6:2),g:tip==="duman"?-.03:.25,r:tip==="duman"?18+Math.random()*34:3+Math.random()*6,c:renk,l:1,d:tip==="duman"?.007:.011,t:tip})}}
-function loop(now){const t=(now-t0)/1000,au=altinAktif();
+let fr=0;function loop(now){const t=(now-t0)/1000,au=altinAktif();fr++;const hf=document.body.classList.contains("hafif");
+  if(!hf||fr%4===0){
   const gr=bg.createRadialGradient(540,760,60,540,860,1300);gr.addColorStop(0,au?"#5a3a06":"#4a0712");gr.addColorStop(.45,au?"#241204":"#1e0308");gr.addColorStop(1,"#060102");bg.fillStyle=gr;bg.fillRect(0,0,1080,1920);
   bg.globalCompositeOperation="lighter";
   for(const o of orbs){o.x+=o.vx;o.y+=o.vy;if(o.y<-o.r){o.y=1920+o.r;o.x=Math.random()*1080}
     const g=bg.createRadialGradient(o.x,o.y,0,o.x,o.y,o.r);g.addColorStop(0,`hsla(${au?42:o.h},90%,55%,${o.a*(.8+.2*Math.sin(t+o.x))})`);g.addColorStop(1,"hsla(0,0%,0%,0)");bg.fillStyle=g;bg.beginPath();bg.arc(o.x,o.y,o.r,0,7);bg.fill();}
   for(const d of dust){d.y-=d.v;d.x+=Math.sin(t*.6+d.p)*.3;if(d.y<0){d.y=1920;d.x=Math.random()*1080}bg.fillStyle=`rgba(255,${au?225:200},${au?150:205},${.25+.25*Math.sin(t*2+d.p)})`;bg.beginPath();bg.arc(d.x,d.y,d.r,0,7);bg.fill();}
   bg.globalCompositeOperation="source-over";
-  const vg=bg.createRadialGradient(540,900,500,540,900,1250);vg.addColorStop(0,"rgba(0,0,0,0)");vg.addColorStop(1,"rgba(0,0,0,.65)");bg.fillStyle=vg;bg.fillRect(0,0,1080,1920);
+  const vg=bg.createRadialGradient(540,900,500,540,900,1250);vg.addColorStop(0,"rgba(0,0,0,0)");vg.addColorStop(1,"rgba(0,0,0,.65)");bg.fillStyle=vg;bg.fillRect(0,0,1080,1920);}
+  if(!P.length&&hf){if(fr%60===0)fxc.clearRect(0,0,1080,1920);requestAnimationFrame(loop);return;}
   fxc.clearRect(0,0,1080,1920);
   for(let i=P.length-1;i>=0;i--){const p=P[i];p.x+=p.vx;p.y+=p.vy;p.vy+=p.g;p.l-=p.d;if(p.l<=0){P.splice(i,1);continue}
     if(p.t==="para"){p.a+=p.va;fxc.save();fxc.globalAlpha=Math.min(1,p.l*1.5);fxc.translate(p.x,p.y);fxc.rotate(p.a);fxc.fillStyle=p.c;fxc.fillRect(-34,-17,68,34);fxc.fillStyle="rgba(0,0,0,.25)";fxc.fillRect(-26,-10,52,20);fxc.fillStyle=p.c;fxc.beginPath();fxc.arc(0,0,8,0,7);fxc.fill();fxc.restore();continue;}
