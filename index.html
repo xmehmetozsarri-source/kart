@@ -216,6 +216,8 @@ body{background:var(--night);color:var(--ink);font-family:var(--body);margin:0;
 body.ekran{padding:0;overflow:hidden}
 body.ekran .phone{position:fixed;inset:0;width:100vw;height:100vh;height:100dvh;max-width:none;aspect-ratio:auto;border-radius:0;box-shadow:none;z-index:50}
 body.ekran .ctl,body.ekran .live{display:none}
+#dokun{position:fixed;inset:0;z-index:99;display:none;align-items:center;justify-content:center;flex-direction:column;gap:14px;background:rgba(0,0,0,.82);color:#fff;font:800 26px var(--body);text-align:center}
+#dokun small{font-size:15px;font-weight:600;color:#e0c3c7}
 body.hafif .glass{backdrop-filter:none;background:rgba(40,8,14,.72)}
 body.hafif .grain{display:none}
 body.hafif .cardWrap::after{filter:none;opacity:.55}
@@ -254,6 +256,7 @@ body.hafif .sheen{display:none}
   </div>
 </div>
 
+<div id="dokun">🔊 Sesi başlatmak için dokun<small>(Telefonun sessiz modu kapalı, ses açık olsun)</small></div>
 <div class="live">
   <h2>🔴 CANLI YAYIN MODU</h2>
   <div class="mods" id="mods"><button data-m="demo">Demo</button><button data-m="ekran">📱 Yayın ekranı</button><button data-m="kumanda">💻 Kumanda</button></div>
@@ -272,6 +275,7 @@ body.hafif .sheen{display:none}
   <label class="tg"><input type="checkbox" id="crowd" checked> Kalabalık yayın (başka izleyiciler de atsın)</label>
   <label class="tg"><input type="checkbox" id="snd" checked> Efekt sesleri</label>
   <label class="tg"><input type="checkbox" id="oku"> Kartları sesli oku</label>
+  <label class="tg"><input type="checkbox" id="muz" checked> Arka plan müziği</label>
 </div>
 
 <script>
@@ -690,7 +694,7 @@ function modSec(m){MOD=m;try{localStorage.setItem("kmod",m)}catch(e){}
   const canli=m!=="demo";$("crowd").checked=!canli;
   if(canli){$("tto").checked=false;tt.hidden=true;sifirla();if(m==="kumanda"&&$("nm").value==="mehmet_34")$("nm").value="";}
   $("ctlh").textContent=m==="kumanda"?"ELLE KART AÇ":"İZLEYİCİ GİBİ DENE";
-  document.body.classList.toggle("ekran",m==="ekran");hafif(m==="ekran");
+  document.body.classList.toggle("ekran",m==="ekran");if(m==="ekran"&&!sesAcik)$("dokun").style.display="flex";hafif(m==="ekran");
   if(room)room.presence({mod:m}).catch(()=>{});
   if(m==="kumanda")tfBaglan();if(m==="ekran")ntfyDinle();lstYaz();}
 $("mods").addEventListener("click",e=>{const b=e.target.closest("button");if(b)modSec(b.dataset.m);});
@@ -699,6 +703,26 @@ function hafif(a){document.body.classList.toggle("hafif",a);const k=a?.5:1;
   [bg,fxc].forEach(c=>{c.canvas.width=1080*k;c.canvas.height=1920*k;c.setTransform(k,0,0,k,0,0);});
   if(a)orbs.length=Math.min(orbs.length,9);else while(orbs.length<22)orbs.push({x:Math.random()*1080,y:Math.random()*1920,r:60+Math.random()*180,vx:(Math.random()-.5)*.25,vy:-.1-Math.random()*.3,h:Math.random()<.75?350:20,a:.05+Math.random()*.1});
   if(a)dust.length=Math.min(dust.length,28);}
+/* arka plan müziği: yavaş, hipnotik ambiyans (WebAudio ile üretilir) */
+let muzik=null;
+function muzikBasla(){if(muzik||!$("muz").checked)return;try{AC=AC||new AudioContext();AC.resume();
+  const out=AC.createGain();out.gain.setValueAtTime(.0001,AC.currentTime);out.gain.exponentialRampToValueAtTime(.24,AC.currentTime+4);
+  const lp=AC.createBiquadFilter();lp.type="lowpass";lp.frequency.value=1500;
+  const dl=AC.createDelay(1.5);dl.delayTime.value=.42;const fb=AC.createGain();fb.gain.value=.38;dl.connect(fb).connect(dl);
+  lp.connect(out);lp.connect(dl);dl.connect(out);out.connect(AC.destination);
+  const CH=[[57,60,64,69],[53,57,60,65],[48,52,55,60],[55,59,62,67]],hz=m=>440*Math.pow(2,(m-69)/12),bar=6.4;let i=0,nx=AC.currentTime+.1;
+  const pad=(t,ch)=>ch.forEach((m,k)=>[0,7].forEach(d=>{const o=AC.createOscillator(),g=AC.createGain();o.type=k?"sine":"triangle";o.frequency.value=hz(m-12);o.detune.value=d-3;
+    g.gain.setValueAtTime(.0001,t);g.gain.exponentialRampToValueAtTime(.045,t+2);g.gain.setValueAtTime(.045,t+bar-1.5);g.gain.exponentialRampToValueAtTime(.0001,t+bar+1);o.connect(g).connect(lp);o.start(t);o.stop(t+bar+1.1);}));
+  const arp=(t,ch)=>{for(let k=0;k<16;k++){if(Math.random()<.35)continue;const m=ch[(k*3)%4]+12+(k%8===7?12:0),tt=t+k*bar/16,o=AC.createOscillator(),g=AC.createGain();o.type="sine";o.frequency.value=hz(m);
+    g.gain.setValueAtTime(.0001,tt);g.gain.exponentialRampToValueAtTime(.032,tt+.02);g.gain.exponentialRampToValueAtTime(.0001,tt+1.2);o.connect(g).connect(lp);o.start(tt);o.stop(tt+1.3);}};
+  const bas=(t,ch)=>{const o=AC.createOscillator(),g=AC.createGain();o.type="sine";o.frequency.value=hz(ch[0]-24);g.gain.setValueAtTime(.0001,t);g.gain.exponentialRampToValueAtTime(.08,t+.3);g.gain.exponentialRampToValueAtTime(.0001,t+bar);o.connect(g).connect(out);o.start(t);o.stop(t+bar+.1);};
+  const tick=()=>{while(nx<AC.currentTime+bar*1.5){const ch=CH[i%4];pad(nx,ch);arp(nx,ch);bas(nx,ch);i++;nx+=bar;}};
+  tick();muzik={out,iv:setInterval(tick,1000)};}catch(e){}}
+function muzikDur(){if(!muzik)return;const m=muzik;muzik=null;clearInterval(m.iv);try{m.out.gain.setTargetAtTime(.0001,AC.currentTime,.4);setTimeout(()=>m.out.disconnect(),3000);}catch(e){}}
+$("muz").addEventListener("change",e=>e.target.checked?muzikBasla():muzikDur());
+let sesAcik=false;function sesAc(){sesAcik=true;$("dokun").style.display="none";try{AC=AC||new AudioContext();AC.resume();}catch(e){}muzikBasla();}
+$("dokun").addEventListener("click",sesAc);
+document.addEventListener("pointerdown",()=>{if(!sesAcik&&MOD!=="ekran")sesAc();},{capture:true});
 let dk=[];$("phone").addEventListener("click",()=>{if(MOD!=="ekran")return;const n=Date.now();dk=dk.filter(x=>n-x<900);dk.push(n);if(dk.length>=3){dk=[];modSec("demo");}});
 /* TikFinity (bilgisayarda açık olmalı) */
 function hediyeSeviye(d){const c=+d.diamondCount||0,n=String(d.giftName||"").toLowerCase();
