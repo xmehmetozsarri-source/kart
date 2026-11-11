@@ -80,11 +80,11 @@ const Z={dj:{x:500,y:735,w:80,h:10},pist:{x:280,y:860,w:520,h:360},vip:{x:870,y:
 const KAPI={x:520,y:1890};
 const SHIRT=["#ff3ea5","#29e3ff","#ffc83d","#7dff5c","#c07bff","#ff7a3d","#f4f0ff","#3d8bff"],SKIN=["#f2c7a5","#d9a27e","#b97a55","#8d5a3b","#f7d9c4"],HAIR=["#1d1424","#4a2a17","#c9852c","#e8d36a","#7a1f3d","#2b2b2b"];
 const BOTS=["ayse.k","burak_4268","Nurella","sinan.34","caglaa","Elxaya","tassmehmed","yagmur.06","kado1907","zeyno_","deniz.ylmz","Mörveeniz","efe.61","ilaydaa","berkcan","sudenaz","emre_07","melis.x","oguzhan","nehir.0"];
-const P={},ppl=[];let djAd=null,djBit=0,strobe=0,banner=null,parts=[],beat=0,ekranAd=null,ekranBit=0,sovAd=null,sovBit=0,alkisBit=0;
+const P={},ppl=[];let vitrin=null,djAd=null,djBit=0,strobe=0,banner=null,parts=[],beat=0,ekranAd=null,ekranBit=0,sovAd=null,sovBit=0,alkisBit=0;
 function hash(s){let h=0;for(const c of s)h=(h*31+c.charCodeAt(0))>>>0;return h}
 function nokta(z){z=Z[z];return{x:R(z.x+20,z.x+z.w-20),y:R(z.y+20,z.y+z.h)}}
 function kisi(ad){if(P[ad])return P[ad];const h=hash(ad);
-  const p={ad,x:KAPI.x+R(-40,40),y:KAPI.y,zone:"lobi",t:nokta("lobi"),wait:0,coin:0,shirt:SHIRT[h%8],skin:SKIN[(h>>3)%5],hair:HAIR[(h>>6)%6],etek:(h>>9)%2===0,jump:0,star:false,heart:0,drink:false,ph:Math.random()*6};
+  const p={ad,x:KAPI.x+R(-40,40),y:KAPI.y,zone:"lobi",t:nokta("lobi"),wait:0,coin:0,shirt:SHIRT[h%8],skin:SKIN[(h>>3)%5],hair:HAIR[(h>>6)%6],etek:(h>>9)%2===0,jump:0,star:false,heart:0,drink:false,ph:Math.random()*6,pic:null};
   P[ad]=p;ppl.push(p);if(ppl.length>40){const o=ppl.find(q=>q.coin===0&&q.ad!==djAd);if(o){ppl.splice(ppl.indexOf(o),1);delete P[o.ad]}}return p}
 function git(p,z){if(z==="vip"){const v=ppl.filter(q=>q.zone==="vip"&&q!==p);if(v.length>=5){v.sort((a,b)=>a.coin-b.coin);git(v[0],"pist")}}
   p.zone=z;p.t=z==="dj"?{x:540,y:745}:nokta(z);p.wait=0}
@@ -93,7 +93,7 @@ function katil(ad){const yeni=!P[ad];kisi(ad);if(yeni)duyur(`@${ad} kulübe gird
 function begen(ad,n){const p=kisi(ad);p.jump=1;p.heart=1}
 function takip(ad){const p=kisi(ad);if(p.star)return;p.star=true;duyur(`⭐ @${ad} takip etti`,"#7dff5c",1800,0)}
 function sac(p,c,n){for(let i=0;i<n;i++)parts.push({x:p.x,y:p.y-60,vx:R(-6,6),vy:R(-11,-3),l:1,c,s:R(7,13),t:"k"})}
-function hediye(ad,i){const g=G[i],p=kisi(ad),now=performance.now();p.coin+=g.coin;p.jump=1;sac(p,g.c,14);ses.cing(Math.min(3,Math.floor(i/2)));
+function hediye(ad,i){const g=G[i],p=kisi(ad),now=performance.now();if(g.coin>=20&&(!vitrin||now>vitrin.bit-1500||g.coin>=vitrin.g.coin))vitrin={ad,g,bas:now,bit:now+(g.coin>=500?6500:5000)};p.coin+=g.coin;p.jump=1;sac(p,g.c,14);ses.cing(Math.min(3,Math.floor(i/2)));
   switch(g.k){
   case"pist":git(p,"pist");duyur(`🌹 @${ad} piste çıktı`,g.c,2000,0);break;
   case"alkis":alkisBit=now+3500;ppl.forEach(q=>q.jump=1);duyur("ALKIŞ!",g.c,1800,2);break;
@@ -110,6 +110,7 @@ function duyur(t,c,ms,lv){const now=performance.now();if(banner&&banner.lv>lv&&n
 function rr(X,Y,w,h,r){x.beginPath();x.roundRect(X,Y,w,h,r)}
 const twC={};function tw(t,f){const k=f+t;if(twC[k])return twC[k];x.font=f;return twC[k]=x.measureText(t).width}
 function kes(t,f,max){if(tw(t,f)<=max)return t;while(t.length>3&&tw(t+"…",f)>max)t=t.slice(0,-1);return t+"…"}
+const FOTO={};function foto(p){if(!p.pic)return null;let o=FOTO[p.pic];if(!o){o=FOTO[p.pic]={ok:false,im:new Image()};o.im.referrerPolicy="no-referrer";o.im.onload=()=>o.ok=true;o.im.src=p.pic}return o.ok?o.im:null}
 function F(c,X,Y,w,h){pc.fillStyle=c;pc.fillRect(Math.round(X),Math.round(Y),Math.round(w),Math.round(h))}
 const MASA=[[70,330],[176,346],[84,400],[184,420],[132,446]];
 function sahne(now){
@@ -166,9 +167,18 @@ function sahne(now){
   if(str){pc.save();pc.globalAlpha=.14;for(let i=0;i<4;i++){const a=now/420+i*1.57;pc.fillStyle=["#ffc83d","#ff3ea5","#29e3ff","#7dff5c"][i];pc.beginPath();pc.moveTo(135,190);pc.lineTo(135+Math.cos(a)*225-30,190+Math.abs(Math.sin(a))*250);pc.lineTo(135+Math.cos(a)*225+30,190+Math.abs(Math.sin(a))*250);pc.fill()}pc.restore()}
   // yazılar (net katman)
   x.textAlign="center";x.textBaseline="middle";
+  if(vitrin&&now<vitrin.bit){const v=vitrin,al=Math.min(1,(now-v.bas)/300,(v.bit-now)/700),q=kisi(v.ad),im=foto(q),sc=1+.06*Math.max(0,1-(now-v.bas)/400);
+    x.save();x.globalAlpha=al;x.translate(620,430);x.scale(sc,sc);
+    x.fillStyle="#0b0818";rr(-410,-95,820,190,40);x.fill();x.strokeStyle=v.g.c;x.lineWidth=7;x.stroke();
+    x.save();x.beginPath();x.arc(-310,0,68,0,7);x.clip();if(im)x.drawImage(im,-378,-68,136,136);else{x.fillStyle=q.shirt;x.fillRect(-378,-68,136,136);x.fillStyle="#0b0818";x.font=`900 64px ${FONT}`;x.fillText(v.ad[0].toUpperCase(),-310,4)}x.restore();
+    x.strokeStyle=v.g.c;x.lineWidth=6;x.beginPath();x.arc(-310,0,68,0,7);x.stroke();
+    x.textAlign="left";x.font=`48px ${DISP}`;x.fillStyle="#ffffff";x.fillText(kes("@"+v.ad,`48px ${DISP}`,530),-222,-30);
+    x.font=`900 38px ${FONT}`;x.fillStyle=v.g.c;x.fillText(kes(`${v.g.e} ${v.g.ad} attı!`,`900 38px ${FONT}`,530),-222,36);x.textAlign="center";x.restore()}
+  else{
   x.font=`58px ${DISP}`;x.lineWidth=10;x.strokeStyle="#0b0818";x.strokeText("GECE KULÜBÜ",620,410);x.fillStyle=Math.sin(now/300)>-.92?"#ff3ea5":"#5a1a44";x.fillText("GECE KULÜBÜ",620,410);
   const pist=ppl.filter(p=>p.zone==="pist"||p.zone==="dj").length;
   x.fillStyle="#181331";rr(470,450,300,48,24);x.fill();x.font=`900 26px ${FONT}`;x.fillStyle="#7dff5c";x.fillText(`PİSTTE ${pist} KİŞİ`,620,475);
+  }
   if(ekranAd&&now<ekranBit){x.fillStyle="#0d0a1f";x.font=`700 24px ${FONT}`;x.fillText("DEV EKRANDA",620,598);x.font=`50px ${DISP}`;x.fillText(kes("@"+ekranAd,`50px ${DISP}`,560),620,648)}
   else{x.font=`34px ${DISP}`;x.lineWidth=8;x.strokeStyle="#0a0716";const t=djAd?"DJ @"+kes(djAd,`34px ${DISP}`,440):"HEDİYE AT, SAHNE SENİN";x.strokeText(t,620,612);x.fillStyle="#ffffff";x.fillText(t,620,612)}
   x.font=`26px ${DISP}`;x.fillStyle="#ffc83d";x.fillText("VIP",950,1040);x.font=`20px ${DISP}`;x.fillText("BAR",958,1282);
@@ -181,7 +191,12 @@ function lejant(){ // sol sütun: hediye → rol
     x.font=`900 19px ${FONT}`;x.fillStyle="#f4f0ff";x.fillText(g.rol,93,y+44);x.font=`500 17px ${FONT}`;x.fillStyle="#a99fd0";x.fillText(g.coin+" jeton",93,y+66)})}
 function cizKisi(p,now){
   const h=hash(p.ad),bx=Math.round(p.x/4),by=Math.round(p.y/4),kare=(beat+h)%2,alk=now<alkisBit,dans=p.zone==="pist"||p.zone==="dj"||alk;
-  const b=dans?kare:0,j=p.jump>0?Math.round(Math.sin(p.jump*Math.PI)*9):0,Y=by-b-j,O="#0b0818";
+  const b=dans?kare:0,j=p.jump>0?Math.round(Math.sin(p.jump*Math.PI)*9):0,Y=by-b-j,Y_=Y,O="#0b0818";
+  const tier=p.coin>=500?3:p.coin>=100?2:p.coin>=20?1:p.coin>=5?0:-1;
+  if(tier>=0){const ac=["#29e3ff","#c07bff","#ff3ea5","#ffc83d"][tier],pul=.35+.25*Math.sin(now/260+h),rx=8+tier*2,ry=4+tier;
+    pc.save();pc.globalAlpha=pul;for(let k=-ry;k<=ry;k++){const w=Math.round(rx*Math.sqrt(1-(k*k)/(ry*ry)));F(ac,bx-w,by+k,w*2+1,1)}
+    pc.globalAlpha=pul*.55;F(ac,bx-6,Y_-19,13,20);pc.restore();
+    for(let k=0;k<2+tier*2;k++){const a=now/(500-tier*60)+k*(6.28/(2+tier*2)),sx=bx+Math.cos(a)*(8+tier),sy=Y_-8+Math.sin(a)*(10+tier);F(k%2?"#ffffff":ac,sx,sy,1,1)}}
   F("rgba(0,0,0,.35)",bx-5,by,11,2);
   // ana hat (outline)
   F(O,bx-5,Y-17,11,13);F(O,bx-4,Y-5,9,5+b);
@@ -202,10 +217,15 @@ function cizKisi(p,now){
   const kral=p.zone==="vip"||p.ad===djAd;
   if(kral){F("#ffc83d",bx-2,Y-19,5,2);F("#ffc83d",bx-2,Y-20,1,1);F("#ffc83d",bx,Y-21,1,2);F("#ffc83d",bx+2,Y-20,1,1);F("#ff3ea5",bx,Y-19,1,1)}
   if(p.ad===sovAd&&now<sovBit){pc.save();pc.globalAlpha=.25;F("#ffffff",bx-7,Y-22,15,24);pc.restore()}
-  // isim etiketi (net katman)
-  const f=`700 24px ${FONT}`,t=kes((p.star?"⭐ ":"")+p.ad,f,220),w=tw(t,f)+22,ty=(Y-(kral?24:20))*4-14;
-  x.fillStyle=p.ad===djAd?"#ffc83d":p.zone==="vip"?"#c07bff":p.ad===sovAd&&now<sovBit?"#3d8bff":"rgba(11,8,24,.88)";rr(p.x-w/2,ty-17,w,34,8);x.fill();
-  x.font=f;x.fillStyle=kral?"#0b0818":"#f4f0ff";x.fillText(t,p.x,ty+1);
+  // isim etiketi + profil fotoğrafı (net katman)
+  const tc=tier>=0?["#29e3ff","#c07bff","#ff3ea5","#ffc83d"][tier]:null;
+  const f=`700 24px ${FONT}`,t=kes((p.star?"⭐ ":"")+p.ad,f,200),w=tw(t,f)+70,ty=(Y-(kral?24:20))*4-20,X0=p.x-w/2;
+  x.fillStyle=p.ad===djAd?"#ffc83d":p.zone==="vip"?"#c07bff":p.ad===sovAd&&now<sovBit?"#3d8bff":"rgba(11,8,24,.9)";rr(X0,ty-22,w,44,22);x.fill();
+  if(tc){x.strokeStyle=tc;x.lineWidth=4;x.stroke()}
+  const im=foto(p),ax=X0+24;x.save();x.beginPath();x.arc(ax,ty,18,0,7);x.clip();
+  if(im){x.drawImage(im,ax-18,ty-18,36,36)}else{x.fillStyle=p.shirt;x.fillRect(ax-18,ty-18,36,36);x.fillStyle="#0b0818";x.font=`900 20px ${FONT}`;x.fillText(p.ad[0].toUpperCase(),ax,ty+1)}
+  x.restore();x.strokeStyle="#f4f0ff";x.lineWidth=2.5;x.beginPath();x.arc(ax,ty,18,0,7);x.stroke();
+  x.font=f;x.fillStyle=kral?"#0b0818":"#f4f0ff";x.textAlign="left";x.fillText(t,X0+50,ty+1);x.textAlign="center";
   if(p.heart>0){x.globalAlpha=Math.min(1,p.heart*1.5);x.font=`34px ${FONT}`;x.fillText("❤️",p.x+42,ty-28-(1-p.heart)*70);x.globalAlpha=1}
   if(alk&&h%3===0){x.font=`30px ${FONT}`;x.fillText("👏",p.x-44,ty-24)}
 }
@@ -266,13 +286,14 @@ $("bJoin").onclick=()=>yap({t:"join",ad:ben()});$("bLike").onclick=()=>yap({t:"l
 const TOPIC="kulup450de79e68d058f0";let MOD="demo",ws=null,wsOk=false,nOk=false,es=null;const gor=new Set();
 const temiz=a=>String(a||"").replace(/^@/,"").slice(0,24)||"izleyici";
 function isle(e){if(!e||typeof e!=="object")return;const ad=temiz(e.ad);
+  if(e.pic&&/^https:\/\//.test(e.pic)){const q=kisi(ad);if(!q.pic)q.pic=e.pic}
   if(e.t==="gift")hediye(ad,Math.max(0,Math.min(G.length-1,e.i|0)));else if(e.t==="like")begen(ad,e.n|0);else if(e.t==="follow")takip(ad);else if(e.t==="join")katil(ad)}
-let likeBuf={},likeT=0,joinBuf=new Set(),joinT=0;
+let picBuf={},likeBuf={},likeT=0,joinBuf=new Set(),joinT=0;
 const yid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,6);
 function post(o){fetch("https://ntfy.sh/"+TOPIC,{method:"POST",body:JSON.stringify(o)}).then(r=>{nOk=r.ok;lst()}).catch(()=>{nOk=false;lst()})}
 function yap(e){isle(e);if(MOD!=="kumanda")return;e.id=yid();
-  if(e.t==="like"){likeBuf[e.ad]=(likeBuf[e.ad]||0)+e.n;if(!likeT)likeT=setTimeout(()=>{post({t:"batch",id:yid(),l:Object.entries(likeBuf).map(([ad,n])=>({t:"like",ad,n,id:yid()}))});likeBuf={};likeT=0},12000);return}
-  if(e.t==="join"){joinBuf.add(e.ad);if(!joinT)joinT=setTimeout(()=>{post({t:"batch",id:yid(),l:[...joinBuf].map(ad=>({t:"join",ad,id:yid()}))});joinBuf=new Set();joinT=0},8000);return}
+  if(e.t==="like"){likeBuf[e.ad]=(likeBuf[e.ad]||0)+e.n;if(e.pic)picBuf[e.ad]=e.pic;if(!likeT)likeT=setTimeout(()=>{post({t:"batch",id:yid(),l:Object.entries(likeBuf).map(([ad,n])=>({t:"like",ad,n,pic:picBuf[ad],id:yid()}))});likeBuf={};picBuf={};likeT=0},12000);return}
+  if(e.t==="join"){joinBuf.add(e.ad);if(e.pic)picBuf[e.ad]=e.pic;if(!joinT)joinT=setTimeout(()=>{post({t:"batch",id:yid(),l:[...joinBuf].map(ad=>({t:"join",ad,pic:picBuf[ad],id:yid()}))});joinBuf=new Set();joinT=0},8000);return}
   post(e)}
 function al(e){if(MOD!=="ekran"||!e||!e.id||gor.has(e.id))return;gor.add(e.id);if(e.t==="batch")(e.l||[]).forEach(al);else isle(e)}
 function dinle(){if(es)return;es=new EventSource("https://ntfy.sh/"+TOPIC+"/sse");es.onopen=()=>{nOk=true;lst()};es.onerror=()=>{nOk=false;lst()};
@@ -282,9 +303,9 @@ function seviye(d){const n=String(d.giftName||"").toLowerCase(),c=+d.diamondCoun
   if(n.includes("finger heart"))return 3;if(c>=5)return 4;if(n==="gg")return 1;if(n.includes("heart"))return 2;return 0}
 function tf(){if(ws&&ws.readyState<2)return;try{ws=new WebSocket("ws://localhost:21213/")}catch(z){return}
   ws.onopen=()=>{wsOk=true;lst()};ws.onclose=()=>{wsOk=false;lst();if(MOD==="kumanda")setTimeout(tf,4000)};ws.onerror=()=>{};
-  ws.onmessage=m=>{let j;try{j=JSON.parse(m.data)}catch(z){return}const d=j.data||{},ad=d.uniqueId||d.nickname;if(!ad)return;
-    if(j.event==="gift"){if(d.giftType===1&&!d.repeatEnd)return;const k=Math.max(1,Math.min(3,+d.repeatCount||1)),i=seviye(d);for(let q=0;q<k;q++)setTimeout(()=>yap({t:"gift",ad,i}),q*400)}
-    else if(j.event==="like")yap({t:"like",ad,n:+d.likeCount||1});else if(j.event==="follow")yap({t:"follow",ad});else if(j.event==="member")yap({t:"join",ad})}}
+  ws.onmessage=m=>{let j;try{j=JSON.parse(m.data)}catch(z){return}const d=j.data||{},ad=d.uniqueId||d.nickname,pic=d.profilePictureUrl||"";if(!ad)return;
+    if(j.event==="gift"){if(d.giftType===1&&!d.repeatEnd)return;const k=Math.max(1,Math.min(3,+d.repeatCount||1)),i=seviye(d);for(let q=0;q<k;q++)setTimeout(()=>yap({t:"gift",ad,i,pic}),q*400)}
+    else if(j.event==="like")yap({t:"like",ad,n:+d.likeCount||1,pic});else if(j.event==="follow")yap({t:"follow",ad,pic});else if(j.event==="member")yap({t:"join",ad,pic})}}
 function lst(){const L=$("lst");if(MOD==="demo"){L.innerHTML="Demo: sahte izleyiciler oynar. Yayında telefonda <b>Yayın ekranı</b>, bilgisayarda <b>Kumanda</b> seç.";return}
   const nb=`sunucu bağlantısı: ${nOk?'<b class="ok">✓</b>':'<b class="no">…</b>'}`;
   L.innerHTML=MOD==="ekran"?nb:`TikFinity: ${wsOk?'<b class="ok">✓ bağlı, hediyeler otomatik</b>':'<b class="no">bağlı değil (TikFinity açık mı?)</b>'}<br>Test için bir hediyeye bas, telefonda görünmeli.<br>${nb}`}
