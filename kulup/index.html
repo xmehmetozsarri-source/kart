@@ -50,6 +50,7 @@ body.ekran .deck{display:none}
   <h2 id="ctlh">İZLEYİCİ GİBİ DENE</h2>
   <p>Yayına giren herkes kulübe girer. Her hediyenin kulüpte bir karşılığı var. Aşağıdan kendi adınla dene.</p>
   <div class="row"><input type="text" id="nm" value="mehmet_34" maxlength="18" aria-label="Kullanıcı adı"></div>
+  <div class="row"><input type="text" id="msg" maxlength="40" placeholder="Sohbete yaz (ör. merhaba)" aria-label="Sohbet mesajı"><button id="bMsg" style="flex:0 0 auto">💬 Yaz</button></div>
   <div class="row" id="gbtn"></div>
   <div class="row">
     <button id="bJoin">🚪 Yayına katıl<b>kapıdan girer</b></button>
@@ -79,6 +80,7 @@ const G=[
 const Z={dj:{x:500,y:735,w:80,h:10},pist:{x:280,y:860,w:520,h:360},vip:{x:870,y:870,w:150,h:330},bar:{x:880,y:1300,w:140,h:150},lobi:{x:230,y:1300,w:580,h:520}};
 const KAPI={x:520,y:1890};
 const SHIRT=["#ff3ea5","#29e3ff","#ffc83d","#7dff5c","#c07bff","#ff7a3d","#f4f0ff","#3d8bff"],SKIN=["#f2c7a5","#d9a27e","#b97a55","#8d5a3b","#f7d9c4"],HAIR=["#1d1424","#4a2a17","#c9852c","#e8d36a","#7a1f3d","#2b2b2b"];
+const LAF=["merhaba 👋","selam herkese","DJ müziği aç 🔥","pist bizim 💃","VIP'e kim geçecek","kral geldi 👑","ooo süper","sa","bu gece bizim","hadi alkış","çok iyi ya","beni de piste al"];
 const BOTS=["ayse.k","burak_4268","Nurella","sinan.34","caglaa","Elxaya","tassmehmed","yagmur.06","kado1907","zeyno_","deniz.ylmz","Mörveeniz","efe.61","ilaydaa","berkcan","sudenaz","emre_07","melis.x","oguzhan","nehir.0"];
 const P={},ppl=[];let vitrin=null,djAd=null,djBit=0,strobe=0,banner=null,parts=[],beat=0,ekranAd=null,ekranBit=0,sovAd=null,sovBit=0,alkisBit=0;
 function hash(s){let h=0;for(const c of s)h=(h*31+c.charCodeAt(0))>>>0;return h}
@@ -91,6 +93,7 @@ function git(p,z){if(z==="vip"){const v=ppl.filter(q=>q.zone==="vip"&&q!==p);if(
 /* ---------- olaylar ---------- */
 function katil(ad){const yeni=!P[ad];kisi(ad);if(yeni)duyur(`@${ad} kulübe girdi`,"#a99fd0",1300,0)}
 function begen(ad,n){const p=kisi(ad);p.jump=1;p.heart=1;p.etk+=Math.max(1,n|0)}
+function konus(ad,m){m=String(m||"").trim().slice(0,40);if(!m)return;const p=kisi(ad);p.msg=m;p.msgBit=performance.now()+4500;p.etk+=3}
 function takip(ad){const p=kisi(ad);if(p.star)return;p.star=true;p.etk+=40;duyur(`⭐ @${ad} takip etti`,"#7dff5c",1800,0)}
 function sac(p,c,n){for(let i=0;i<n;i++)parts.push({x:p.x,y:p.y-60,vx:R(-6,6),vy:R(-11,-3),l:1,c,s:R(7,13),t:"k"})}
 function hediye(ad,i){const g=G[i],p=kisi(ad),now=performance.now();if(g.coin>=20&&(!vitrin||now>vitrin.bit-1500||g.coin>=vitrin.g.coin))vitrin={ad,g,bas:now,bit:now+(g.coin>=500?6500:5000)};p.coin+=g.coin;p.etk+=g.coin*8;if(i===7)p.boss=true;p.jump=1;sac(p,g.c,14);ses.cing(Math.min(3,Math.floor(i/2)));
@@ -233,6 +236,9 @@ function cizKisi(p,now){
   x.restore();x.strokeStyle=tc||"#f4f0ff";x.lineWidth=tc?5:3;x.beginPath();x.arc(p.x,ay,r,0,7);x.stroke();
   if(p.boss){x.font=`38px ${FONT}`;x.fillText("👑",p.x,ay-r-16)}
   const tyH=ay-r;
+  if(p.msg&&now<p.msgBit){const al=Math.min(1,(p.msgBit-now)/400),mf=`700 26px ${FONT}`,mt=kes(p.msg,mf,330),mw=tw(mt,mf)+34,my=tyH-(p.boss?64:30)-26;
+    x.save();x.globalAlpha=al;x.fillStyle="#ffffff";rr(p.x-mw/2,my-24,mw,48,16);x.fill();x.beginPath();x.moveTo(p.x-10,my+23);x.lineTo(p.x+10,my+23);x.lineTo(p.x,my+36);x.fill();
+    x.font=mf;x.fillStyle="#0b0818";x.fillText(mt,p.x,my+1);x.restore()}
   if(p.heart>0){x.globalAlpha=Math.min(1,p.heart*1.5);x.font=`34px ${FONT}`;x.fillText("❤️",p.x+r+26,tyH-(1-p.heart)*70);x.globalAlpha=1}
   if(alk&&h%3===0){x.font=`30px ${FONT}`;x.fillText("👏",p.x-r-26,tyH+10)}
 }
@@ -289,18 +295,20 @@ document.addEventListener("pointerdown",()=>{if(!sesAcik&&MOD!=="ekran")sesAc()}
 const ben=()=>($("nm").value.trim().replace(/^@/,"")||"sen");
 G.forEach((g,i)=>{const b=document.createElement("button");b.innerHTML=`${g.e} ${g.ad} · ${g.coin}<b>${g.rol.toLowerCase()}</b>`;b.onclick=()=>yap({t:"gift",ad:ben(),i});$("gbtn").appendChild(b)});
 $("bJoin").onclick=()=>yap({t:"join",ad:ben()});$("bLike").onclick=()=>yap({t:"like",ad:ben(),n:15});$("bFol").onclick=()=>yap({t:"follow",ad:ben()});
+const msgGonder=()=>{const m=$("msg").value.trim();if(!m)return;yap({t:"chat",ad:ben(),m});$("msg").value=""};$("bMsg").onclick=msgGonder;$("msg").addEventListener("keydown",e=>{if(e.key==="Enter")msgGonder()});
 /* ---------- canlı mod: telefon = ekran, bilgisayar = kumanda + TikFinity (aracı: ntfy.sh) ---------- */
 const TOPIC="kulup450de79e68d058f0";let MOD="demo",ws=null,wsOk=false,nOk=false,es=null;const gor=new Set();
 const temiz=a=>String(a||"").replace(/^@/,"").slice(0,24)||"izleyici";
 function isle(e){if(!e||typeof e!=="object")return;const ad=temiz(e.ad);
   if(e.pic&&/^https:\/\//.test(e.pic)){const q=kisi(ad);if(!q.pic)q.pic=e.pic}
-  if(e.t==="gift")hediye(ad,Math.max(0,Math.min(G.length-1,e.i|0)));else if(e.t==="like")begen(ad,e.n|0);else if(e.t==="follow")takip(ad);else if(e.t==="join")katil(ad)}
-let picBuf={},likeBuf={},likeT=0,joinBuf=new Set(),joinT=0;
+  if(e.t==="gift")hediye(ad,Math.max(0,Math.min(G.length-1,e.i|0)));else if(e.t==="like")begen(ad,e.n|0);else if(e.t==="follow")takip(ad);else if(e.t==="join")katil(ad);else if(e.t==="chat")konus(ad,e.m)}
+let chatBuf=[],chatT=0,picBuf={},likeBuf={},likeT=0,joinBuf=new Set(),joinT=0;
 const yid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,6);
 function post(o){fetch("https://ntfy.sh/"+TOPIC,{method:"POST",body:JSON.stringify(o)}).then(r=>{nOk=r.ok;lst()}).catch(()=>{nOk=false;lst()})}
 function yap(e){isle(e);if(MOD!=="kumanda")return;e.id=yid();
   if(e.t==="like"){likeBuf[e.ad]=(likeBuf[e.ad]||0)+e.n;if(e.pic)picBuf[e.ad]=e.pic;if(!likeT)likeT=setTimeout(()=>{post({t:"batch",id:yid(),l:Object.entries(likeBuf).map(([ad,n])=>({t:"like",ad,n,pic:picBuf[ad],id:yid()}))});likeBuf={};picBuf={};likeT=0},12000);return}
   if(e.t==="join"){joinBuf.add(e.ad);if(e.pic)picBuf[e.ad]=e.pic;if(!joinT)joinT=setTimeout(()=>{post({t:"batch",id:yid(),l:[...joinBuf].map(ad=>({t:"join",ad,pic:picBuf[ad],id:yid()}))});joinBuf=new Set();joinT=0},8000);return}
+  if(e.t==="chat"){chatBuf.push(e);if(chatBuf.length>12)chatBuf.shift();if(!chatT)chatT=setTimeout(()=>{post({t:"batch",id:yid(),l:chatBuf});chatBuf=[];chatT=0},3000);return}
   post(e)}
 function al(e){if(MOD!=="ekran"||!e||!e.id||gor.has(e.id))return;gor.add(e.id);if(e.t==="batch")(e.l||[]).forEach(al);else isle(e)}
 function dinle(){if(es)return;es=new EventSource("https://ntfy.sh/"+TOPIC+"/sse");es.onopen=()=>{nOk=true;lst()};es.onerror=()=>{nOk=false;lst()};
@@ -312,7 +320,7 @@ function tf(){if(ws&&ws.readyState<2)return;try{ws=new WebSocket("ws://localhost
   ws.onopen=()=>{wsOk=true;lst()};ws.onclose=()=>{wsOk=false;lst();if(MOD==="kumanda")setTimeout(tf,4000)};ws.onerror=()=>{};
   ws.onmessage=m=>{let j;try{j=JSON.parse(m.data)}catch(z){return}const d=j.data||{},ad=d.uniqueId||d.nickname,pic=d.profilePictureUrl||"";if(!ad)return;
     if(j.event==="gift"){if(d.giftType===1&&!d.repeatEnd)return;const k=Math.max(1,Math.min(3,+d.repeatCount||1)),i=seviye(d);for(let q=0;q<k;q++)setTimeout(()=>yap({t:"gift",ad,i,pic}),q*400)}
-    else if(j.event==="like")yap({t:"like",ad,n:+d.likeCount||1,pic});else if(j.event==="follow")yap({t:"follow",ad,pic});else if(j.event==="member")yap({t:"join",ad,pic})}}
+    else if(j.event==="like")yap({t:"like",ad,n:+d.likeCount||1,pic});else if(j.event==="follow")yap({t:"follow",ad,pic});else if(j.event==="member")yap({t:"join",ad,pic});else if(j.event==="chat"&&d.comment)yap({t:"chat",ad,m:String(d.comment).slice(0,40),pic})}}
 function lst(){const L=$("lst");if(MOD==="demo"){L.innerHTML="Demo: sahte izleyiciler oynar. Yayında telefonda <b>Yayın ekranı</b>, bilgisayarda <b>Kumanda</b> seç.";return}
   const nb=`sunucu bağlantısı: ${nOk?'<b class="ok">✓</b>':'<b class="no">…</b>'}`;
   L.innerHTML=MOD==="ekran"?nb:`TikFinity: ${wsOk?'<b class="ok">✓ bağlı, hediyeler otomatik</b>':'<b class="no">bağlı değil (TikFinity açık mı?)</b>'}<br>Test için bir hediyeye bas, telefonda görünmeli.<br>${nb}`}
@@ -329,7 +337,7 @@ function tohum(){BOTS.slice(0,12).forEach(a=>{const p=kisi(a);p.x=R(240,800);p.y
   ["caglaa","efe.61","sudenaz","berkcan","ilaydaa"].forEach(a=>{const p=kisi(a);git(p,"pist");p.x=p.t.x;p.y=p.t.y;p.coin=1});
   const z=kisi("zeyno_");z.coin=40;git(z,"vip");z.x=z.t.x;z.y=z.t.y;const ay=kisi("ayse.k");ay.coin=6;ay.drink=true;git(ay,"bar");ay.x=ay.t.x;ay.y=ay.t.y}
 function bot(){if($("crowd").checked&&MOD==="demo"){const a=rnd(BOTS),r=Math.random();
-  if(!P[a])katil(a);else if(r<.42)begen(a,10);else if(r<.48)takip(a);else{const i=r<.7?0:r<.78?1:r<.84?2:r<.9?3:r<.94?4:r<.975?5:r<.993?6:7;hediye(a,i)}}
+  if(!P[a])katil(a);else if(r<.2)konus(a,rnd(LAF));else if(r<.42)begen(a,10);else if(r<.48)takip(a);else{const i=r<.7?0:r<.78?1:r<.84?2:r<.9?3:r<.94?4:r<.975?5:r<.993?6:7;hediye(a,i)}}
   setTimeout(bot,R(1600,3400))}
 const HASH=location.hash.replace("#","");
 if(HASH==="ekran"||HASH==="kumanda")setTimeout(()=>mod(HASH),200);else{tohum();setTimeout(bot,1500);lst()}
