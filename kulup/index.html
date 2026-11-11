@@ -84,16 +84,16 @@ const P={},ppl=[];let vitrin=null,djAd=null,djBit=0,strobe=0,banner=null,parts=[
 function hash(s){let h=0;for(const c of s)h=(h*31+c.charCodeAt(0))>>>0;return h}
 function nokta(z){z=Z[z];return{x:R(z.x+20,z.x+z.w-20),y:R(z.y+20,z.y+z.h)}}
 function kisi(ad){if(P[ad])return P[ad];const h=hash(ad);
-  const p={ad,x:KAPI.x+R(-40,40),y:KAPI.y,zone:"lobi",t:nokta("lobi"),wait:0,coin:0,shirt:SHIRT[h%8],skin:SKIN[(h>>3)%5],hair:HAIR[(h>>6)%6],etek:(h>>9)%2===0,jump:0,star:false,heart:0,drink:false,ph:Math.random()*6,pic:null};
+  const p={ad,x:KAPI.x+R(-40,40),y:KAPI.y,zone:"lobi",t:nokta("lobi"),wait:0,coin:0,shirt:SHIRT[h%8],skin:SKIN[(h>>3)%5],hair:HAIR[(h>>6)%6],etek:(h>>9)%2===0,jump:0,star:false,heart:0,drink:false,ph:Math.random()*6,pic:null,etk:0,boss:false};
   P[ad]=p;ppl.push(p);if(ppl.length>40){const o=ppl.find(q=>q.coin===0&&q.ad!==djAd);if(o){ppl.splice(ppl.indexOf(o),1);delete P[o.ad]}}return p}
 function git(p,z){if(z==="vip"){const v=ppl.filter(q=>q.zone==="vip"&&q!==p);if(v.length>=5){v.sort((a,b)=>a.coin-b.coin);git(v[0],"pist")}}
   p.zone=z;p.t=z==="dj"?{x:540,y:745}:nokta(z);p.wait=0}
 /* ---------- olaylar ---------- */
 function katil(ad){const yeni=!P[ad];kisi(ad);if(yeni)duyur(`@${ad} kulübe girdi`,"#a99fd0",1300,0)}
-function begen(ad,n){const p=kisi(ad);p.jump=1;p.heart=1}
-function takip(ad){const p=kisi(ad);if(p.star)return;p.star=true;duyur(`⭐ @${ad} takip etti`,"#7dff5c",1800,0)}
+function begen(ad,n){const p=kisi(ad);p.jump=1;p.heart=1;p.etk+=Math.max(1,n|0)}
+function takip(ad){const p=kisi(ad);if(p.star)return;p.star=true;p.etk+=40;duyur(`⭐ @${ad} takip etti`,"#7dff5c",1800,0)}
 function sac(p,c,n){for(let i=0;i<n;i++)parts.push({x:p.x,y:p.y-60,vx:R(-6,6),vy:R(-11,-3),l:1,c,s:R(7,13),t:"k"})}
-function hediye(ad,i){const g=G[i],p=kisi(ad),now=performance.now();if(g.coin>=20&&(!vitrin||now>vitrin.bit-1500||g.coin>=vitrin.g.coin))vitrin={ad,g,bas:now,bit:now+(g.coin>=500?6500:5000)};p.coin+=g.coin;p.jump=1;sac(p,g.c,14);ses.cing(Math.min(3,Math.floor(i/2)));
+function hediye(ad,i){const g=G[i],p=kisi(ad),now=performance.now();if(g.coin>=20&&(!vitrin||now>vitrin.bit-1500||g.coin>=vitrin.g.coin))vitrin={ad,g,bas:now,bit:now+(g.coin>=500?6500:5000)};p.coin+=g.coin;p.etk+=g.coin*8;if(i===7)p.boss=true;p.jump=1;sac(p,g.c,14);ses.cing(Math.min(3,Math.floor(i/2)));
   switch(g.k){
   case"pist":git(p,"pist");duyur(`🌹 @${ad} piste çıktı`,g.c,2000,0);break;
   case"alkis":alkisBit=now+3500;ppl.forEach(q=>q.jump=1);duyur("ALKIŞ!",g.c,1800,2);break;
@@ -192,7 +192,7 @@ function lejant(){ // sol sütun: hediye → rol
 function cizKisi(p,now){
   const h=hash(p.ad),bx=Math.round(p.x/4),by=Math.round(p.y/4),kare=(beat+h)%2,alk=now<alkisBit,dans=p.zone==="pist"||p.zone==="dj"||alk;
   const b=dans?kare:0,j=p.jump>0?Math.round(Math.sin(p.jump*Math.PI)*9):0,Y=by-b-j,Y_=Y,O="#0b0818";
-  const tier=p.coin>=500?3:p.coin>=100?2:p.coin>=20?1:p.coin>=5?0:-1;
+  const puan=p.coin+p.etk/40,tier=(p.boss||puan>=500)?3:puan>=100?2:puan>=20?1:puan>=4?0:-1;
   if(tier>=0){const ac=["#29e3ff","#c07bff","#ff3ea5","#ffc83d"][tier],pul=.35+.25*Math.sin(now/260+h),rx=8+tier*2,ry=4+tier;
     pc.save();pc.globalAlpha=pul;for(let k=-ry;k<=ry;k++){const w=Math.round(rx*Math.sqrt(1-(k*k)/(ry*ry)));F(ac,bx-w,by+k,w*2+1,1)}
     pc.globalAlpha=pul*.55;F(ac,bx-6,Y_-19,13,20);pc.restore();
@@ -203,7 +203,8 @@ function cizKisi(p,now){
   // bacaklar
   const l1=dans&&kare?3:4,l2=dans&&!kare?3:4;F("#1d1830",bx-3,Y-4,2,l1+b);F("#1d1830",bx+1,Y-4,2,l2+b);
   // gövde (etek ya da ceket)
-  if(p.etek){F(p.shirt,bx-3,Y-10,7,4);F(p.shirt,bx-4,Y-6,9,3)}else{F(p.shirt,bx-3,Y-10,7,6);F("rgba(0,0,0,.25)",bx,Y-10,1,6)}
+  if(p.boss){F(O,bx-6,Y-12,13,12);F("#b0173f",bx-5,Y-11,11,10);F("#7a0f2a",bx-5,Y-3,11,2);F("#ffc83d",bx-3,Y-10,7,6);F("#0b0818",bx,Y-10,1,6);F("#fff3a0",bx-2,Y-10,5,1);F("#fff3a0",bx-1,Y-9,1,1);F("#fff3a0",bx+1,Y-9,1,1);F("#fff",bx-1,Y-8,1,1)}
+  else if(p.etek){F(p.shirt,bx-3,Y-10,7,4);F(p.shirt,bx-4,Y-6,9,3)}else{F(p.shirt,bx-3,Y-10,7,6);F("rgba(0,0,0,.25)",bx,Y-10,1,6)}
   // kollar
   const ust=dans&&kare,kc=p.skin;
   if(alk){F(kc,bx-3,Y-9,2,2);F(kc,bx+2,Y-9,2,2)}
@@ -212,22 +213,28 @@ function cizKisi(p,now){
   // kafa
   F(kc,bx-2,Y-16,5,5);F(p.hair,bx-2,Y-16,5,2);F(p.hair,bx-3,Y-15,1,2);F(p.hair,bx+3,Y-15,1,2);
   if(p.etek){F(p.hair,bx-3,Y-13,1,4);F(p.hair,bx+3,Y-13,1,4)}
-  F(O,bx-1,Y-13,1,1);F(O,bx+1,Y-13,1,1);
+  if(p.boss){F(O,bx-3,Y-14,7,2);F("#29e3ff",bx-2,Y-14,1,1);F("#29e3ff",bx+2,Y-14,1,1)}else{F(O,bx-1,Y-13,1,1);F(O,bx+1,Y-13,1,1)}
   if(p.drink){F("#29e3ff",bx+5,Y-9,1,2);F("#ffffff",bx+5,Y-9,1,1)}
-  const kral=p.zone==="vip"||p.ad===djAd;
-  if(kral){F("#ffc83d",bx-2,Y-19,5,2);F("#ffc83d",bx-2,Y-20,1,1);F("#ffc83d",bx,Y-21,1,2);F("#ffc83d",bx+2,Y-20,1,1);F("#ff3ea5",bx,Y-19,1,1)}
+  const kral=p.zone==="vip"||p.ad===djAd||p.boss;
+  if(p.boss){F(O,bx-4,Y-22,9,6);F("#ffc83d",bx-3,Y-19,7,2);F("#ffc83d",bx-3,Y-21,1,2);F("#ffc83d",bx,Y-22,1,3);F("#ffc83d",bx+3,Y-21,1,2);F("#ff3ea5",bx-1,Y-19,1,1);F("#29e3ff",bx+1,Y-19,1,1)}
+  else if(kral){F("#ffc83d",bx-2,Y-19,5,2);F("#ffc83d",bx-2,Y-20,1,1);F("#ffc83d",bx,Y-21,1,2);F("#ffc83d",bx+2,Y-20,1,1);F("#ff3ea5",bx,Y-19,1,1)}
   if(p.ad===sovAd&&now<sovBit){pc.save();pc.globalAlpha=.25;F("#ffffff",bx-7,Y-22,15,24);pc.restore()}
-  // isim etiketi + profil fotoğrafı (net katman)
+  // profil fotoğrafı (kafanın üstünde) + isim etiketi (net katman)
   const tc=tier>=0?["#29e3ff","#c07bff","#ff3ea5","#ffc83d"][tier]:null;
-  const f=`700 24px ${FONT}`,t=kes((p.star?"⭐ ":"")+p.ad,f,200),w=tw(t,f)+70,ty=(Y-(kral?24:20))*4-20,X0=p.x-w/2;
-  x.fillStyle=p.ad===djAd?"#ffc83d":p.zone==="vip"?"#c07bff":p.ad===sovAd&&now<sovBit?"#3d8bff":"rgba(11,8,24,.9)";rr(X0,ty-22,w,44,22);x.fill();
-  if(tc){x.strokeStyle=tc;x.lineWidth=4;x.stroke()}
-  const im=foto(p),ax=X0+24;x.save();x.beginPath();x.arc(ax,ty,18,0,7);x.clip();
-  if(im){x.drawImage(im,ax-18,ty-18,36,36)}else{x.fillStyle=p.shirt;x.fillRect(ax-18,ty-18,36,36);x.fillStyle="#0b0818";x.font=`900 20px ${FONT}`;x.fillText(p.ad[0].toUpperCase(),ax,ty+1)}
-  x.restore();x.strokeStyle="#f4f0ff";x.lineWidth=2.5;x.beginPath();x.arc(ax,ty,18,0,7);x.stroke();
-  x.font=f;x.fillStyle=kral?"#0b0818":"#f4f0ff";x.textAlign="left";x.fillText(t,X0+50,ty+1);x.textAlign="center";
-  if(p.heart>0){x.globalAlpha=Math.min(1,p.heart*1.5);x.font=`34px ${FONT}`;x.fillText("❤️",p.x+42,ty-28-(1-p.heart)*70);x.globalAlpha=1}
-  if(alk&&h%3===0){x.font=`30px ${FONT}`;x.fillText("👏",p.x-44,ty-24)}
+  const f=`700 24px ${FONT}`,t=kes((p.star?"⭐ ":"")+p.ad,f,220),w=tw(t,f)+28,ty=(Y-(kral?24:20))*4-16;
+  x.fillStyle=p.boss?"#ffc83d":p.ad===djAd?"#ffc83d":p.zone==="vip"?"#c07bff":p.ad===sovAd&&now<sovBit?"#3d8bff":"rgba(11,8,24,.9)";rr(p.x-w/2,ty-19,w,38,19);x.fill();
+  if(tc){x.strokeStyle=tc;x.lineWidth=3;x.stroke()}
+  x.font=f;x.fillStyle=(kral||p.ad===djAd)?"#0b0818":"#f4f0ff";x.fillText(t,p.x,ty+1);
+  const r=p.boss?36:tier>=1?32:28,ay=ty-19-r-6,im=foto(p);
+  if(tc){const pu=.45+.35*Math.sin(now/260+h);x.save();x.globalAlpha=pu;x.fillStyle=tc;x.beginPath();x.arc(p.x,ay,r+(tier+1)*4+2,0,7);x.fill();x.restore()}
+  x.fillStyle="#0b0818";x.beginPath();x.arc(p.x,ay,r+4,0,7);x.fill();
+  x.save();x.beginPath();x.arc(p.x,ay,r,0,7);x.clip();
+  if(im)x.drawImage(im,p.x-r,ay-r,r*2,r*2);else{x.fillStyle=p.shirt;x.fillRect(p.x-r,ay-r,r*2,r*2);x.fillStyle="#0b0818";x.font=`900 ${Math.round(r*1.1)}px ${FONT}`;x.fillText(p.ad[0].toUpperCase(),p.x,ay+2)}
+  x.restore();x.strokeStyle=tc||"#f4f0ff";x.lineWidth=tc?5:3;x.beginPath();x.arc(p.x,ay,r,0,7);x.stroke();
+  if(p.boss){x.font=`38px ${FONT}`;x.fillText("👑",p.x,ay-r-16)}
+  const tyH=ay-r;
+  if(p.heart>0){x.globalAlpha=Math.min(1,p.heart*1.5);x.font=`34px ${FONT}`;x.fillText("❤️",p.x+r+26,tyH-(1-p.heart)*70);x.globalAlpha=1}
+  if(alk&&h%3===0){x.font=`30px ${FONT}`;x.fillText("👏",p.x-r-26,tyH+10)}
 }
 function tablo(){
   const top=ppl.filter(p=>p.coin>0).sort((a,b)=>b.coin-a.coin).slice(0,5),X=858,Y=1520;
